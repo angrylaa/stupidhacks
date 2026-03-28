@@ -1,0 +1,8 @@
+.DS_Store
+.venv/
+.venv-media/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+assets/raw/

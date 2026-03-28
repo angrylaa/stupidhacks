@@ -1,0 +1,37 @@
+{
+  "base_duration": 8,
+  "max_duration": 12,
+  "fallback_caption": "You brought this on yourself.",
+  "clips": [
+    {
+      "id": "harambe",
+      "file": "harambe.mp4",
+      "caption": "Slack closed. Harambe dies again.",
+      "apps": ["com.tinyspeck.slackmacgap", "com.apple.Mail"]
+    },
+    {
+      "id": "ppap",
+      "file": "ppap.mp4",
+      "caption": "Chrome tried to leave. Pen pineapple revenge.",
+      "apps": ["com.google.Chrome", "com.apple.Safari"]
+    },
+    {
+      "id": "dat-boi",
+      "file": "dat_boi.mp4",
+      "caption": "Oh shit waddup, that window never closed.",
+      "apps": ["com.apple.finder", "com.apple.Terminal"]
+    },
+    {
+      "id": "pokemon-go",
+      "file": "pokemon_go.mp4",
+      "caption": "Nobody asked the Pokemon GO song to be here.",
+      "apps": ["com.spotify.client", "com.apple.Music"]
+    },
+    {
+      "id": "damn-daniel",
+      "file": "damn_daniel.mp4",
+      "caption": "Back at it again with the cursed close button.",
+      "apps": ["com.microsoft.VSCode", "com.apple.dt.Xcode"]
+    }
+  ]
+}
