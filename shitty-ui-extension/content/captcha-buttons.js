@@ -6,6 +6,7 @@
   if (!U || !D) return;
 
   const SKIP_ATTR = "data-shitty-captcha-pass";
+  const PENDING_ATTR = "data-shitty-captcha-pending";
   const AD_COUNT = 16;
   const CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const QTE_KEYS = ["W", "A", "S", "D", "Q", "E", "R", "F", "H", "J", "K", "L"];
@@ -221,7 +222,39 @@
     mountEl.appendChild(puzzleRoot);
   }
 
-  function openCaptchaModal(target, onSuccess) {
+  function buildQuitTokPayload(target) {
+    return {
+      element_tag: target?.tagName ? target.tagName.toLowerCase() : "",
+      element_role: target?.getAttribute ? target.getAttribute("role") || "" : "",
+      element_text: target?.innerText || target?.textContent || "",
+      page_url: window.location.href,
+      page_title: document.title,
+    };
+  }
+
+  function triggerQuitTokMeme(target) {
+    return new Promise((resolve) => {
+      try {
+        chrome.runtime.sendMessage(
+          {
+            type: "trigger_quittok_web_meme",
+            payload: buildQuitTokPayload(target),
+          },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              resolve({ ok: false, reason: chrome.runtime.lastError.message });
+              return;
+            }
+            resolve(response || { ok: false, reason: "no-response" });
+          }
+        );
+      } catch (error) {
+        resolve({ ok: false, reason: String(error) });
+      }
+    });
+  }
+
+  function openCaptchaModal(target, onSuccess, onCancel) {
     U.ensureHost();
 
     const root = document.createElement("div");
@@ -440,9 +473,14 @@
       stageMount.textContent = "";
     }
 
-    function close() {
+    let settled = false;
+
+    function close(notifyCancel = true) {
+      if (settled) return;
+      settled = true;
       clearStage();
       closeBackdrop();
+      if (notifyCancel && typeof onCancel === "function") onCancel();
     }
 
     function fail(msg) {
@@ -467,6 +505,8 @@
       cbCheck.style.display = "block";
       cb.style.borderColor = "#34a853";
       window.setTimeout(() => {
+        if (settled) return;
+        settled = true;
         closeBackdrop();
         onSuccess();
       }, 450);
@@ -1137,12 +1177,12 @@
       }
     });
 
-    giveUp.addEventListener("click", () => close());
+    giveUp.addEventListener("click", () => close(true));
   }
 
   document.addEventListener(
     "click",
-    function (e) {
+    async function (e) {
       const s = U.settings;
       if (!s || !s.captchaButtons) return;
 
@@ -1158,14 +1198,21 @@
         clickable.removeAttribute(SKIP_ATTR);
         return;
       }
+      if (clickable.hasAttribute(PENDING_ATTR)) return;
 
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
 
+      clickable.setAttribute(PENDING_ATTR, "1");
+      await triggerQuitTokMeme(clickable);
+
       openCaptchaModal(clickable, function () {
+        clickable.removeAttribute(PENDING_ATTR);
         clickable.setAttribute(SKIP_ATTR, "1");
         clickable.click();
+      }, function () {
+        clickable.removeAttribute(PENDING_ATTR);
       });
     },
     true

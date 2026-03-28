@@ -41,9 +41,9 @@ Suggested filenames:
 
 - `harambe.mp4`
 - `ppap.mp4`
-- `datboi.mp4`
-- `saltbae.mp4`
-- `we-are-number-one.mp4`
+- `dat_boi.mp4`
+- `pokemon_go.mp4`
+- `damn_daniel.mp4`
 
 ## Run
 
@@ -95,6 +95,32 @@ If you want raw downloads without trimming:
 - `Safe Demo Mode`: blocks automatic triggers while keeping the manual test button available
 - `Trigger Meme Now`: forces the overlay immediately
 - `Prompt for Accessibility`: reopens the system trust prompt
+- `Web bridge`: shows whether the local Edge-extension loopback bridge is live
+
+## Edge Extension Integration
+
+The repository now includes [`shitty-ui-extension`](/Users/stsang/Development/stupid-ideas-hackathon/shitty-ui-extension), an unpacked Edge extension that intercepts captchable website button clicks.
+
+Integrated flow:
+
+1. the extension blocks the original web click
+2. it calls QuitTok over `http://127.0.0.1:47616/api/web-trigger`
+3. QuitTok plays a meme and only responds after the overlay closes
+4. the extension opens the fake captcha gauntlet
+5. after captcha success, the original click is replayed once
+
+Manual Edge setup:
+
+```bash
+python3 -m http.server 8016
+open -na "/Applications/Microsoft Edge.app" --args \
+  --user-data-dir=/tmp/quittok-edge-profile \
+  --disable-extensions-except=/Users/stsang/Development/stupid-ideas-hackathon/shitty-ui-extension \
+  --load-extension=/Users/stsang/Development/stupid-ideas-hackathon/shitty-ui-extension \
+  http://127.0.0.1:8016/shitty-ui-extension/test-page.html
+```
+
+Then open `edge://extensions`, enable Developer mode if needed, confirm the unpacked extension is loaded, and click the test button on the page.
 
 ## Packaging
 

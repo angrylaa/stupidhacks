@@ -13,6 +13,7 @@ class StatusMenu:
         self.kill_count_item = None
         self.accessibility_item = None
         self.keyboard_hook_item = None
+        self.web_bridge_item = None
 
     def install(self) -> None:
         self.status_item = AppKit.NSStatusBar.systemStatusBar().statusItemWithLength_(
@@ -33,9 +34,11 @@ class StatusMenu:
         self.kill_count_item = self._item("Closures prevented: 0", None, enabled=False)
         self.accessibility_item = self._item("Accessibility: unknown", None, enabled=False)
         self.keyboard_hook_item = self._item("Keyboard hook: offline", None, enabled=False)
+        self.web_bridge_item = self._item("Web bridge: offline", None, enabled=False)
         self.menu.addItem_(self.kill_count_item)
         self.menu.addItem_(self.accessibility_item)
         self.menu.addItem_(self.keyboard_hook_item)
+        self.menu.addItem_(self.web_bridge_item)
         self.menu.addItem_(self._item("Prompt for Accessibility", "requestAccessibility:"))
         self.menu.addItem_(AppKit.NSMenuItem.separatorItem())
         self.menu.addItem_(self._item("Quit QuitTok 2016", "quitApp:"))
@@ -51,7 +54,7 @@ class StatusMenu:
         item.setEnabled_(enabled)
         return item
 
-    def refresh(self, *, enabled: bool, safe_demo_mode: bool, kill_count: int, accessibility: bool, keyboard_hook_live: bool) -> None:
+    def refresh(self, *, enabled: bool, safe_demo_mode: bool, kill_count: int, accessibility: bool, keyboard_hook_live: bool, web_bridge_live: bool) -> None:
         if self.enabled_item is None:
             return
         self.enabled_item.setState_(
@@ -66,4 +69,7 @@ class StatusMenu:
         )
         self.keyboard_hook_item.setTitle_(
             f"Keyboard hook: {'live' if keyboard_hook_live else 'offline'}"
+        )
+        self.web_bridge_item.setTitle_(
+            f"Web bridge: {'live' if web_bridge_live else 'offline'}"
         )

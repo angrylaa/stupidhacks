@@ -4,6 +4,7 @@ import AppKit
 import time
 import objc
 
+from .bridge import BRIDGE_HOST, BRIDGE_PORT, LoopbackBridge, WebTriggerRequest
 from .config import AppConfig
 from .overlay import OverlayController
 from .policy import PunishmentPolicy
@@ -26,6 +27,8 @@ class QuitTokApp(AppKit.NSObject):
         self.status_menu = StatusMenu(self)
         self.overlay = OverlayController.alloc().initWithController_(self)
         self.trigger_monitor = TriggerMonitor.alloc().initWithController_(self)
+        self.web_bridge = LoopbackBridge(self)
+        self.pending_web_requests: list[WebTriggerRequest] = []
         self.last_trigger_at = 0.0
         self.last_trigger_bundle_id = None
         self.last_trigger_source = None
@@ -36,11 +39,14 @@ class QuitTokApp(AppKit.NSObject):
         self.status_menu.install()
         permissions.request_accessibility()
         self.trigger_monitor.start()
+        self.web_bridge.start()
         self.refresh_status_menu()
         return None
 
     def applicationWillTerminate_(self, notification):
         self.trigger_monitor.stop()
+        self.web_bridge.stop()
+        self._complete_pending_web_requests(error="app-terminated")
         self.volume.restore()
         return None
 
@@ -53,6 +59,7 @@ class QuitTokApp(AppKit.NSObject):
             kill_count=self.policy.kill_count,
             accessibility=ax_trusted,
             keyboard_hook_live=self.trigger_monitor.keyboard_hook_live(),
+            web_bridge_live=self.web_bridge.is_live(),
         )
 
     @objc.python_method
@@ -86,6 +93,8 @@ class QuitTokApp(AppKit.NSObject):
 
     @objc.python_method
     def _should_ignore_trigger(self, source: str, bundle_id: str | None, now: float) -> bool:
+        if source.startswith("web-"):
+            return False
         if bundle_id is None or self.last_trigger_bundle_id != bundle_id:
             return False
         elapsed = now - self.last_trigger_at
@@ -138,8 +147,43 @@ class QuitTokApp(AppKit.NSObject):
 
     @objc.python_method
     def overlay_did_dismiss(self) -> None:
+        self._complete_pending_web_requests()
         self.volume.restore()
         self.refresh_status_menu()
+
+    @objc.python_method
+    def submit_web_trigger_request(self, request: WebTriggerRequest) -> tuple[bool, str | None]:
+        if not self.web_bridge.is_live():
+            return False, "bridge-offline"
+        self.performSelectorOnMainThread_withObject_waitUntilDone_(
+            "handleWebTriggerRequestOnMainThread:",
+            request,
+            False,
+        )
+        return True, None
+
+    def handleWebTriggerRequestOnMainThread_(self, request):
+        if not self.should_handle_automatic_triggers():
+            request.fail("quittok-disabled")
+            return None
+        payload = request.payload or {}
+        bundle_id = "com.microsoft.edgemac"
+        app_name = payload.get("browser_name") or "Microsoft Edge"
+        triggered = self._trigger("web-click", bundle_id, app_name)
+        if not triggered:
+            request.fail("trigger-rejected")
+            return None
+        self.pending_web_requests.append(request)
+        return None
+
+    @objc.python_method
+    def _complete_pending_web_requests(self, error: str | None = None) -> None:
+        pending, self.pending_web_requests = self.pending_web_requests, []
+        for request in pending:
+            if error is None:
+                request.succeed()
+            else:
+                request.fail(error)
 
     def fireScheduledTrigger_(self, timer):
         payload = timer.userInfo() or {}
