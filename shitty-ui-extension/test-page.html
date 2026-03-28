@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shitty UI — local test</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 480px;
+        margin: 48px auto;
+        padding: 0 16px;
+      }
+      label {
+        display: block;
+        margin-top: 20px;
+        font-weight: 600;
+      }
+      button {
+        margin-top: 8px;
+        padding: 10px 16px;
+        cursor: pointer;
+      }
+      input,
+      select {
+        margin-top: 6px;
+        width: 100%;
+        max-width: 320px;
+        padding: 8px;
+      }
+      #log {
+        margin-top: 24px;
+        padding: 12px;
+        background: #f3f4f6;
+        border-radius: 8px;
+        font-size: 13px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Shitty UI test page</h1>
+    <p>Open this file in Chrome with the extension loaded (enable file access for the extension if needed).</p>
+
+    <label>Button (should ask captcha)</label>
+    <button type="button" id="btn">Click me</button>
+
+    <label>Text field (should open ouija)</label>
+    <input type="text" id="field" placeholder="Focus me" autocomplete="off" />
+
+    <label>Email (should open two-reel slot)</label>
+    <input type="email" id="mail" placeholder="you@example.com" autocomplete="email" />
+
+    <label>Select (should open slot machine)</label>
+    <select id="pick">
+      <option value="a">Apple</option>
+      <option value="b">Banana</option>
+      <option value="c">Cherry</option>
+    </select>
+
+    <div id="log"></div>
+
+    <script>
+      const log = document.getElementById("log");
+      function say(msg) {
+        log.textContent += msg + "\n";
+      }
+      document.getElementById("btn").addEventListener("click", () => say("Button click fired."));
+      document.getElementById("field").addEventListener("input", () =>
+        say("Input value: " + document.getElementById("field").value)
+      );
+      document.getElementById("pick").addEventListener("change", (e) =>
+        say("Select: " + e.target.value)
+      );
+      document.getElementById("mail").addEventListener("input", () =>
+        say("Email: " + document.getElementById("mail").value)
+      );
+    </script>
+  </body>
+</html>

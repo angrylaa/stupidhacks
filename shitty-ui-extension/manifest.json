@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "Shitty UI Injector",
+  "version": "1.0.0",
+  "description": "Intercepts clicks with a long fake reCAPTCHA gauntlet (typing, plates, dice, slots, puzzle, QTEs).",
+  "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Shitty UI"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "color-blind.png",
+        "ads/1.png",
+        "ads/2.png",
+        "ads/3.png",
+        "ads/4.png",
+        "ads/5.png",
+        "ads/6.png",
+        "ads/7.png",
+        "ads/8.png",
+        "ads/9.png",
+        "ads/10.png",
+        "ads/11.png",
+        "ads/12.png",
+        "ads/13.png",
+        "ads/14.png",
+        "ads/15.png",
+        "ads/16.png"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "content/shadow-host.js",
+        "content/custom-dom.js",
+        "content/boot.js",
+        "content/captcha-buttons.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}
